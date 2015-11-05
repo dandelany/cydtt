@@ -7,7 +7,7 @@ A Chrome extension for matching the tempo of a Youtube video to a different song
 
 1. On the command line, run `git clone https://github.com/dandelany/cydtt.git` (this will create your `cydtt` install folder)
 2. Open the URL `chrome://extensions/` in a new tab in Chrome
-3. Ensure that "Developer Mode" is turned on (checkbox in upper left)
+3. Ensure that "Developer Mode" is turned on (checkbox in upper right)
 4. Click "Load unpacked extension"
 5. Navigate into the `cydtt` folder created by step 1
 6. Click "Select" to load the extension

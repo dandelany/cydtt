@@ -110,14 +110,16 @@
 	            videoBPM: undefined,
 	            tapping: undefined,
 	            isPaused: false,
-	            isMuted: false
+	            isMuted: false,
+	            songId: undefined
 	        };
 	    },
 	    componentDidMount: function componentDidMount() {
 	        var _this = this;
 	
 	        _urlState2.default.get(function (state) {
-	            return _this.setBPMState(state, false);
+	            _this.setBPMState(state, false);
+	            if (state.songId) _this.setState({ songId: state.songId });
 	        });
 	        _videoControls2.default.paused(function (_ref) {
 	            var _ref2 = _slicedToArray(_ref, 1);
@@ -150,16 +152,18 @@
 	            return _this3.setState({ isMuted: true });
 	        });
 	    },
-	    setBPMState: function setBPMState(state, shouldSetURL) {
+	    setBPMState: function setBPMState(state) {
 	        var _this4 = this;
+	
+	        var shouldSetURL = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 	
 	        this.setState(state, function () {
 	            var _state = _this4.state;
 	            var songBPM = _state.songBPM;
 	            var videoBPM = _state.videoBPM;
 	
-	            if (shouldSetURL) _urlState2.default.set({ songBPM: songBPM, videoBPM: videoBPM });
-	            var speed = _this4.state.songBPM / _this4.state.videoBPM;
+	            if (shouldSetURL) _this4.setURLState();
+	            var speed = songBPM / videoBPM;
 	            if (_lodash2.default.isFinite(speed)) {
 	                _this4.setState({ speed: speed });
 	                _videoControls2.default.setSpeed(speed);
@@ -168,12 +172,13 @@
 	            }
 	        });
 	    },
-	    onChangeTextInput: function onChangeTextInput(key, e) {
-	        var value = parseFloat(e.target.value);
-	        if (!_lodash2.default.isNaN(value)) this.setState(_defineProperty({}, key, value), this.updatePlaySpeed);
+	    setURLState: function setURLState() {
+	        _urlState2.default.set(this.state);
 	    },
 	    onChangeBPM: function onChangeBPM(key, value) {
-	        if (!_lodash2.default.isNaN(value)) this.setState(_defineProperty({}, key, value), this.updatePlaySpeed);
+	        this.setState({ tapping: undefined });
+	        if (!_lodash2.default.isNaN(value)) this.setBPMState(_defineProperty({}, key, value));
+	        //if(!_.isNaN(value)) this.setState({[key]: value}, this.updatePlaySpeed);
 	    },
 	    onChangeSongBPM: function onChangeSongBPM(songBPM) {
 	        this.setState({ songBPM: songBPM }, this.updatePlaySpeed);
@@ -183,12 +188,16 @@
 	        this.setState({ videoBPM: videoBPM }, this.updatePlaySpeed);
 	        this.setState({ tapping: undefined });
 	    },
+	    onSetSongId: function onSetSongId(e) {
+	        var songId = this.refs.songId.value;
+	        if (songId) this.setState({ songId: songId }, this.setURLState);
+	    },
 	    updatePlaySpeed: function updatePlaySpeed() {
 	        var _state2 = this.state;
 	        var songBPM = _state2.songBPM;
 	        var videoBPM = _state2.videoBPM;
 	
-	        _urlState2.default.set({ songBPM: songBPM, videoBPM: videoBPM });
+	        this.setURLState();
 	        var speed = this.state.songBPM / this.state.videoBPM;
 	        if (_lodash2.default.isFinite(speed)) {
 	            this.setState({ speed: speed });
@@ -205,17 +214,7 @@
 	            _react2.default.createElement(
 	                'h2',
 	                null,
-	                'CYDTT'
-	            ),
-	            _react2.default.createElement(
-	                'button',
-	                { onClick: this.togglePaused },
-	                this.state.isPaused ? 'play' : 'pause'
-	            ),
-	            _react2.default.createElement(
-	                'button',
-	                { onClick: this.toggleMuted },
-	                this.state.isMuted ? 'unmute' : 'mute'
+	                'Can You Dance To This?!'
 	            ),
 	            _react2.default.createElement(
 	                'div',
@@ -224,31 +223,9 @@
 	                this.state.speed ? this.state.speed.toFixed(2) : "1"
 	            ),
 	            _react2.default.createElement(
-	                'div',
-	                { className: 'section' },
-	                _react2.default.createElement(
-	                    'h4',
-	                    null,
-	                    'Song BPM'
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    null,
-	                    _react2.default.createElement(_reactWidgets.NumberPicker, {
-	                        value: this.state.songBPM,
-	                        onChange: this.onChangeBPM.bind(null, 'songBPM'),
-	                        format: '##.00'
-	                    })
-	                ),
-	                _react2.default.createElement(
-	                    'div',
-	                    null,
-	                    _react2.default.createElement(
-	                        'button',
-	                        { onClick: this.setTapping.bind(null, 'songBPM') },
-	                        'tap'
-	                    )
-	                )
+	                'button',
+	                null,
+	                'reset'
 	            ),
 	            _react2.default.createElement(
 	                'div',
@@ -256,16 +233,31 @@
 	                _react2.default.createElement(
 	                    'h4',
 	                    null,
-	                    'Video BPM'
+	                    'Video'
 	                ),
 	                _react2.default.createElement(
 	                    'div',
 	                    null,
+	                    _react2.default.createElement(
+	                        'button',
+	                        { onClick: this.togglePaused },
+	                        this.state.isPaused ? 'play' : 'pause'
+	                    ),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { onClick: this.toggleMuted },
+	                        this.state.isMuted ? 'unmute' : 'mute'
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'bpm-input' },
 	                    _react2.default.createElement(_reactWidgets.NumberPicker, {
 	                        value: this.state.videoBPM,
 	                        onChange: this.onChangeBPM.bind(null, 'videoBPM'),
 	                        format: '#.00'
-	                    })
+	                    }),
+	                    'BPM'
 	                ),
 	                _react2.default.createElement(
 	                    'div',
@@ -277,15 +269,60 @@
 	                    )
 	                )
 	            ),
+	            _react2.default.createElement(
+	                'div',
+	                { className: 'section' },
+	                _react2.default.createElement(
+	                    'h4',
+	                    null,
+	                    'Song'
+	                ),
+	                this.state.songId ? this.renderSpotifyEmbed(this.state.songId) : null,
+	                _react2.default.createElement(
+	                    'div',
+	                    null,
+	                    _react2.default.createElement('input', { ref: 'songId', type: 'text', placeholder: 'spotify track URI' }),
+	                    _react2.default.createElement(
+	                        'button',
+	                        { onClick: this.onSetSongId },
+	                        'embed'
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'bpm-input' },
+	                    _react2.default.createElement(_reactWidgets.NumberPicker, {
+	                        value: this.state.songBPM,
+	                        onChange: this.onChangeBPM.bind(null, 'songBPM'),
+	                        format: '##.00'
+	                    }),
+	                    'BPM'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    null,
+	                    _react2.default.createElement(
+	                        'button',
+	                        { onClick: this.setTapping.bind(null, 'songBPM') },
+	                        'Tap BPM'
+	                    )
+	                )
+	            ),
 	            this.state.tapping === 'songBPM' ? _react2.default.createElement(TapRegion, {
-	                onChangeBPM: this.onChangeSongBPM,
+	                onChangeBPM: this.onChangeBPM.bind(null, 'songBPM'),
 	                onCancel: this.setTapping.bind(null, undefined)
 	            }) : null,
 	            this.state.tapping === 'videoBPM' ? _react2.default.createElement(TapRegion, {
-	                onChangeBPM: this.onChangeVideoBPM,
+	                onChangeBPM: this.onChangeBPM.bind(null, 'videoBPM'),
 	                onCancel: this.setTapping.bind(null, undefined)
 	            }) : null
 	        );
+	    },
+	    renderSpotifyEmbed: function renderSpotifyEmbed(songId) {
+	        return _react2.default.createElement('iframe', {
+	            src: 'https://embed.spotify.com/?uri=' + songId,
+	            width: '250', height: '80', frameborder: '0', allowtransparency: 'true'
+	        });
 	    }
 	});
 	
@@ -304,6 +341,7 @@
 	    },
 	    onClick: function onClick() {
 	        var bpm = this.bpmTap.tap().avg;
+	        bpm = bpm ? +bpm.toFixed(2) : null;
 	        this.setState({ bpm: bpm });
 	    },
 	    onSave: function onSave(e) {
@@ -53573,9 +53611,10 @@
 	    set: function set(_ref) {
 	        var songBPM = _ref.songBPM;
 	        var videoBPM = _ref.videoBPM;
+	        var songId = _ref.songId;
 	        var callback = arguments.length <= 1 || arguments[1] === undefined ? _lodash2.default.noop : arguments[1];
 	
-	        var hash = 'cyd/' + (videoBPM || '') + '/' + (songBPM || '');
+	        var hash = 'cyd/' + (videoBPM || '') + '/' + (songBPM || '') + '/' + (songId || '');
 	        setURLHash(hash, callback);
 	    },
 	    get: function get() {
@@ -53590,23 +53629,23 @@
 	            if (hashParts.length >= 3 && hashParts[0] === 'cyd') {
 	                // good saved state in url, parse and return
 	
-	                var _hashParts = _slicedToArray(hashParts, 3);
+	                var _hashParts = _slicedToArray(hashParts, 4);
 	
 	                var id = _hashParts[0];
 	                var videoBPM = _hashParts[1];
 	                var songBPM = _hashParts[2];
+	                var songId = _hashParts[3];
 	
 	                videoBPM = _lodash2.default.isNaN(parseFloat(videoBPM)) ? undefined : parseFloat(videoBPM);
 	                songBPM = _lodash2.default.isNaN(parseFloat(songBPM)) ? undefined : parseFloat(songBPM);
-	                console.log({ videoBPM: videoBPM, songBPM: songBPM });
-	                callback({ videoBPM: videoBPM, songBPM: songBPM });
+	                callback({ videoBPM: videoBPM, songBPM: songBPM, songId: songId });
 	            } else {
 	                callback({});
 	            }
 	        });
 	    }
 	};
-	88.77;
+	
 	exports.default = urlState;
 
 /***/ }

@@ -23,11 +23,15 @@ const Panel = React.createClass({
             videoBPM: undefined,
             tapping: undefined,
             isPaused: false,
-            isMuted: false
+            isMuted: false,
+            songId: undefined
         }
     },
     componentDidMount() {
-        urlState.get(state => this.setBPMState(state, false));
+        urlState.get(state => {
+            this.setBPMState(state, false);
+            if(state.songId) this.setState({songId: state.songId});
+        });
         videoControls.paused(([isPaused]) => this.setState({isPaused}));
         videoControls.muted(([isMuted]) => this.setState({isMuted}));
     },
@@ -40,11 +44,11 @@ const Panel = React.createClass({
         else videoControls.mute(() => this.setState({isMuted: true}));
     },
 
-    setBPMState(state, shouldSetURL) {
+    setBPMState(state, shouldSetURL=true) {
         this.setState(state, () => {
             const {songBPM, videoBPM} = this.state;
-            if(shouldSetURL) urlState.set({songBPM, videoBPM});
-            const speed = this.state.songBPM / this.state.videoBPM;
+            if(shouldSetURL) this.setURLState();
+            const speed = songBPM / videoBPM;
             if(_.isFinite(speed)) {
                 this.setState({speed});
                 videoControls.setSpeed(speed);
@@ -53,13 +57,14 @@ const Panel = React.createClass({
             }
         });
     },
-
-    onChangeTextInput(key, e) {
-        const value = parseFloat(e.target.value);
-        if(!_.isNaN(value)) this.setState({[key]: value}, this.updatePlaySpeed);
+    setURLState() {
+        urlState.set(this.state);
     },
+
     onChangeBPM(key, value) {
-        if(!_.isNaN(value)) this.setState({[key]: value}, this.updatePlaySpeed);
+        this.setState({tapping: undefined});
+        if(!_.isNaN(value)) this.setBPMState({[key]: value});
+        //if(!_.isNaN(value)) this.setState({[key]: value}, this.updatePlaySpeed);
     },
     onChangeSongBPM(songBPM) {
         this.setState({songBPM}, this.updatePlaySpeed);
@@ -69,9 +74,14 @@ const Panel = React.createClass({
         this.setState({videoBPM}, this.updatePlaySpeed);
         this.setState({tapping: undefined});
     },
+    onSetSongId(e) {
+        const songId = this.refs.songId.value;
+        if(songId) this.setState({songId}, this.setURLState);
+    },
+
     updatePlaySpeed() {
         const {songBPM, videoBPM} = this.state;
-        urlState.set({songBPM, videoBPM});
+        this.setURLState();
         const speed = this.state.songBPM / this.state.videoBPM;
         if(_.isFinite(speed)) {
             this.setState({speed});
@@ -85,57 +95,79 @@ const Panel = React.createClass({
 
     render() {
         return <div>
-            <h2>CYDTT</h2>
-
-            <button onClick={this.togglePaused}>
-                {this.state.isPaused ? 'play' : 'pause'}
-            </button>
-            <button onClick={this.toggleMuted}>
-                {this.state.isMuted ? 'unmute' : 'mute'}
-            </button>
+            <h2>Can You Dance To This?!</h2>
 
             <div>
                 Video Speed: {this.state.speed ? this.state.speed.toFixed(2) : "1"}
             </div>
+            <button>reset</button>
+
             <div className="section">
-                <h4>Song BPM</h4>
+                <h4>Video</h4>
                 <div>
+                    <button onClick={this.togglePaused}>
+                        {this.state.isPaused ? 'play' : 'pause'}
+                    </button>
+                    <button onClick={this.toggleMuted}>
+                        {this.state.isMuted ? 'unmute' : 'mute'}
+                    </button>
+                </div>
+                <div className="bpm-input">
+                    <NumberPicker
+                        value={this.state.videoBPM}
+                        onChange={this.onChangeBPM.bind(null, 'videoBPM')}
+                        format="#.00"
+                        />
+                    BPM
+                </div>
+                <div><button onClick={this.setTapping.bind(null, 'videoBPM')}>tap</button></div>
+            </div>
+
+            <div className="section">
+                <h4>Song</h4>
+                {this.state.songId ?
+                    this.renderSpotifyEmbed(this.state.songId) : null
+                }
+                <div>
+                    <input ref="songId" type="text" placeholder="spotify track URI"/>
+                    <button onClick={this.onSetSongId}>embed</button>
+                </div>
+                <div className="bpm-input">
                     <NumberPicker
                         value={this.state.songBPM}
                         onChange={this.onChangeBPM.bind(null, 'songBPM')}
                         format="##.00"
                         />
+                    BPM
                 </div>
-                <div><button onClick={this.setTapping.bind(null, 'songBPM')}>tap</button></div>
+                <div><button onClick={this.setTapping.bind(null, 'songBPM')}>Tap BPM</button></div>
+
+
             </div>
-            <div className="section">
-                <h4>Video BPM</h4>
-                <div>
-                    <NumberPicker
-                        value={this.state.videoBPM}
-                        onChange={this.onChangeBPM.bind(null, 'videoBPM')}
-                        format="#.00"
-                    />
-                </div>
-                <div><button onClick={this.setTapping.bind(null, 'videoBPM')}>tap</button></div>
-            </div>
+
 
             {this.state.tapping === 'songBPM' ?
                 <TapRegion
-                    onChangeBPM={this.onChangeSongBPM}
+                    onChangeBPM={this.onChangeBPM.bind(null, 'songBPM')}
                     onCancel={this.setTapping.bind(null, undefined)}
                 />
                 : null
             }
             {this.state.tapping === 'videoBPM' ?
                 <TapRegion
-                    onChangeBPM={this.onChangeVideoBPM}
+                    onChangeBPM={this.onChangeBPM.bind(null, 'videoBPM')}
                     onCancel={this.setTapping.bind(null, undefined)}
                 />
                 : null
             }
 
         </div>
+    },
+    renderSpotifyEmbed(songId) {
+        return <iframe
+            src={`https://embed.spotify.com/?uri=${songId}`}
+            width="250" height="80" frameborder="0" allowtransparency="true"
+        />;
     }
 });
 
@@ -154,7 +186,8 @@ const TapRegion = React.createClass({
     },
 
     onClick() {
-        const bpm = this.bpmTap.tap().avg;
+        let bpm = this.bpmTap.tap().avg;
+        bpm = bpm ? +bpm.toFixed(2) : null;
         this.setState({bpm});
     },
     onSave(e) {

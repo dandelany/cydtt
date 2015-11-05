@@ -20,8 +20,8 @@ function getURLHash(callback=_.noop) {
 }
 
 const urlState = {
-    set({songBPM, videoBPM}, callback=_.noop) {
-        const hash = `cyd/${videoBPM || ''}/${songBPM || ''}`;
+    set({songBPM, videoBPM, songId}, callback=_.noop) {
+        const hash = `cyd/${videoBPM || ''}/${songBPM || ''}/${songId || ''}`;
         setURLHash(hash, callback);
     },
     get(callback=_.noop) {
@@ -31,11 +31,10 @@ const urlState = {
             const hashParts = hash.split('/');
             if(hashParts.length >= 3 && hashParts[0] === 'cyd') {
                 // good saved state in url, parse and return
-                let [id, videoBPM, songBPM] = hashParts;
+                let [id, videoBPM, songBPM, songId] = hashParts;
                 videoBPM = _.isNaN(parseFloat(videoBPM)) ? undefined : parseFloat(videoBPM);
                 songBPM = _.isNaN(parseFloat(songBPM)) ? undefined : parseFloat(songBPM);
-                console.log({videoBPM, songBPM});
-                callback({videoBPM, songBPM});
+                callback({videoBPM, songBPM, songId});
             } else {
                 callback({});
             }

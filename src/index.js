@@ -123,6 +123,15 @@ const Panel = React.createClass({
                 <div><button onClick={this.setTapping.bind(null, 'videoBPM')}>tap</button></div>
             </div>
 
+            {this.state.tapping === 'videoBPM' ?
+                <TapRegion
+                    onChangeBPM={this.onChangeBPM.bind(null, 'videoBPM')}
+                    onCancel={this.setTapping.bind(null, undefined)}
+                    label="video"
+                    />
+                : null
+            }
+
             <div className="section">
                 <h4>Song</h4>
                 {this.state.songId ?
@@ -141,26 +150,16 @@ const Panel = React.createClass({
                     BPM
                 </div>
                 <div><button onClick={this.setTapping.bind(null, 'songBPM')}>Tap BPM</button></div>
-
-
             </div>
-
 
             {this.state.tapping === 'songBPM' ?
                 <TapRegion
                     onChangeBPM={this.onChangeBPM.bind(null, 'songBPM')}
                     onCancel={this.setTapping.bind(null, undefined)}
+                    label="song"
                 />
                 : null
             }
-            {this.state.tapping === 'videoBPM' ?
-                <TapRegion
-                    onChangeBPM={this.onChangeBPM.bind(null, 'videoBPM')}
-                    onCancel={this.setTapping.bind(null, undefined)}
-                />
-                : null
-            }
-
         </div>
     },
     renderSpotifyEmbed(songId) {
@@ -173,7 +172,12 @@ const Panel = React.createClass({
 
 const TapRegion = React.createClass({
     propTypes: {
-        onChangeBPM: React.PropTypes.func
+        onChangeBPM: React.PropTypes.func,
+        onCancel: React.PropTypes.func,
+        label: React.PropTypes.string
+    },
+    getDefaultProps() {
+        return {label: 'song'};
     },
     getInitialState() {
         return {bpm: null};
@@ -206,10 +210,10 @@ const TapRegion = React.createClass({
     render() {
         return <div onClick={this.onClick}>
             <h3>{_.isFinite(this.state.bpm) ? this.state.bpm.toFixed(2) : ''} BPM</h3>
-            <p>Click in this area or hit any key to tap the rhythm of the song</p>
-            <button onClick={this.onReset}>reset</button>
-            <button onClick={this.onSave}>save</button>
-            <button onClick={this.onCancel}>cancel</button>
+            <p>Click in this area to tap the rhythm of the {this.props.label}</p>
+            <button onClick={this.onSave}>Save BPM</button>
+            <button onClick={this.onReset}>Start over</button>
+            <button onClick={this.onCancel}>Cancel</button>
         </div>
     }
 });

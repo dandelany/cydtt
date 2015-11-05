@@ -269,6 +269,11 @@
 	                    )
 	                )
 	            ),
+	            this.state.tapping === 'videoBPM' ? _react2.default.createElement(TapRegion, {
+	                onChangeBPM: this.onChangeBPM.bind(null, 'videoBPM'),
+	                onCancel: this.setTapping.bind(null, undefined),
+	                label: 'video'
+	            }) : null,
 	            _react2.default.createElement(
 	                'div',
 	                { className: 'section' },
@@ -310,11 +315,8 @@
 	            ),
 	            this.state.tapping === 'songBPM' ? _react2.default.createElement(TapRegion, {
 	                onChangeBPM: this.onChangeBPM.bind(null, 'songBPM'),
-	                onCancel: this.setTapping.bind(null, undefined)
-	            }) : null,
-	            this.state.tapping === 'videoBPM' ? _react2.default.createElement(TapRegion, {
-	                onChangeBPM: this.onChangeBPM.bind(null, 'videoBPM'),
-	                onCancel: this.setTapping.bind(null, undefined)
+	                onCancel: this.setTapping.bind(null, undefined),
+	                label: 'song'
 	            }) : null
 	        );
 	    },
@@ -328,7 +330,12 @@
 	
 	var TapRegion = _react2.default.createClass({
 	    propTypes: {
-	        onChangeBPM: _react2.default.PropTypes.func
+	        onChangeBPM: _react2.default.PropTypes.func,
+	        onCancel: _react2.default.PropTypes.func,
+	        label: _react2.default.PropTypes.string
+	    },
+	    getDefaultProps: function getDefaultProps() {
+	        return { label: 'song' };
 	    },
 	    getInitialState: function getInitialState() {
 	        return { bpm: null };
@@ -370,22 +377,23 @@
 	            _react2.default.createElement(
 	                'p',
 	                null,
-	                'Click in this area or hit any key to tap the rhythm of the song'
-	            ),
-	            _react2.default.createElement(
-	                'button',
-	                { onClick: this.onReset },
-	                'reset'
+	                'Click in this area to tap the rhythm of the ',
+	                this.props.label
 	            ),
 	            _react2.default.createElement(
 	                'button',
 	                { onClick: this.onSave },
-	                'save'
+	                'Save BPM'
+	            ),
+	            _react2.default.createElement(
+	                'button',
+	                { onClick: this.onReset },
+	                'Start over'
 	            ),
 	            _react2.default.createElement(
 	                'button',
 	                { onClick: this.onCancel },
-	                'cancel'
+	                'Cancel'
 	            )
 	        );
 	    }
